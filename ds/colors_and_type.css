@@ -1,0 +1,255 @@
+/* ============================================================
+ * Distinct Services — Design Tokens
+ * Theme: Dark only. Self-hosted brand fonts.
+ * Import order: this file → component CSS → page styles.
+ * ============================================================ */
+
+/* JetBrains Mono is still loaded from Google Fonts — no brand .ttf provided. */
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap");
+
+/* ─── Inter (body) — 18pt optical size, the right size for UI text ─── */
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 300; font-display: swap; src: url("fonts/Inter_18pt-Light.ttf")    format("truetype"); }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/Inter_18pt-Regular.ttf")  format("truetype"); }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/Inter_18pt-Medium.ttf")   format("truetype"); }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 600; font-display: swap; src: url("fonts/Inter_18pt-SemiBold.ttf") format("truetype"); }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/Inter_18pt-Bold.ttf")     format("truetype"); }
+@font-face { font-family: "Inter"; font-style: italic; font-weight: 500; font-display: swap; src: url("fonts/Inter_18pt-MediumItalic.ttf")   format("truetype"); }
+@font-face { font-family: "Inter"; font-style: italic; font-weight: 600; font-display: swap; src: url("fonts/Inter_18pt-SemiBoldItalic.ttf") format("truetype"); }
+
+/* ─── Inter at larger optical sizes — for subheads & display body ─── */
+@font-face { font-family: "Inter Large";   font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/Inter_24pt-Regular.ttf")  format("truetype"); }
+@font-face { font-family: "Inter Large";   font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/Inter_24pt-Medium.ttf")   format("truetype"); }
+@font-face { font-family: "Inter Large";   font-style: normal; font-weight: 600; font-display: swap; src: url("fonts/Inter_24pt-SemiBold.ttf") format("truetype"); }
+@font-face { font-family: "Inter Large";   font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/Inter_24pt-Bold.ttf")     format("truetype"); }
+
+/* ─── Montserrat Alternates (display) — the chosen brand display face ─── */
+@font-face { font-family: "Montserrat Alternates"; font-style: normal; font-weight: 100; font-display: swap; src: url("fonts/MontserratAlternates-Thin.ttf")       format("truetype"); }
+@font-face { font-family: "Montserrat Alternates"; font-style: normal; font-weight: 300; font-display: swap; src: url("fonts/MontserratAlternates-Light.ttf")      format("truetype"); }
+@font-face { font-family: "Montserrat Alternates"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/MontserratAlternates-Regular.ttf")    format("truetype"); }
+@font-face { font-family: "Montserrat Alternates"; font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/MontserratAlternates-Medium.ttf")     format("truetype"); }
+@font-face { font-family: "Montserrat Alternates"; font-style: normal; font-weight: 600; font-display: swap; src: url("fonts/MontserratAlternates-SemiBold.ttf")   format("truetype"); }
+@font-face { font-family: "Montserrat Alternates"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/MontserratAlternates-Bold.ttf")       format("truetype"); }
+@font-face { font-family: "Montserrat Alternates"; font-style: normal; font-weight: 800; font-display: swap; src: url("fonts/MontserratAlternates-ExtraBold.ttf")  format("truetype"); }
+@font-face { font-family: "Montserrat Alternates"; font-style: normal; font-weight: 900; font-display: swap; src: url("fonts/MontserratAlternates-Black.ttf")      format("truetype"); }
+@font-face { font-family: "Montserrat Alternates"; font-style: italic; font-weight: 500; font-display: swap; src: url("fonts/MontserratAlternates-MediumItalic.ttf")   format("truetype"); }
+@font-face { font-family: "Montserrat Alternates"; font-style: italic; font-weight: 600; font-display: swap; src: url("fonts/MontserratAlternates-SemiBoldItalic.ttf") format("truetype"); }
+
+/* ─── Montserrat (variable, wght axis) — kept as a fallback / non-distinct context ─── */
+@font-face {
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("fonts/Montserrat-VariableFont_wght.ttf") format("truetype-variations"),
+       url("fonts/Montserrat-VariableFont_wght.ttf") format("truetype");
+}
+
+:root {
+  /* --------------------------------------------------------
+   * Color — core palette
+   * Never use pure black (#000) or pure white (#FFF).
+   * #73F3A4 never fills a whole section — accent only.
+   * -------------------------------------------------------- */
+  --color-primary:        #73F3A4;   /* CTA, links, focal accents */
+  --color-secondary:      #79BD89;   /* hover, secondary icons */
+
+  --color-black-1:        #0F0F0F;   /* page background */
+  --color-black-2:        #1E1E1E;   /* cards, elevated surfaces */
+  --color-black-deeper:   #080808;   /* terminal background */
+
+  --color-white-1:        #FAFAFA;   /* primary text on dark */
+  --color-white-support:  #E3FFE9;   /* text on green */
+
+  /* Complementary tokens */
+  --color-green-deep:                #101A12; /* alt section bg, subtle green tint */
+  --color-green-glow:                rgba(115, 243, 164, 0.08);
+  --color-green-glass-border:        rgba(115, 243, 164, 0.15);
+  --color-green-glass-border-strong: rgba(115, 243, 164, 0.30);
+  --color-surface:                   #2A2A2A; /* FAQ, inputs */
+  --color-muted-surface:             rgba(250, 250, 250, 0.04); /* glass fill */
+  --color-muted-text:                rgba(250, 250, 250, 0.55); /* secondary body */
+  --color-muted-text-light:          rgba(250, 250, 250, 0.35); /* labels, meta */
+  --color-divider:                   rgba(250, 250, 250, 0.08);
+
+  /* Status (terminal logs) */
+  --color-log-ok:    #73F3A4;
+  --color-log-wait:  #F3C173;
+  --color-log-info:  rgba(250, 250, 250, 0.50);
+  --color-log-text:  rgba(250, 250, 250, 0.75);
+  --color-log-time:  rgba(250, 250, 250, 0.25);
+
+  /* Traffic lights for window chrome */
+  --color-tl-red:    #FF5F57;
+  --color-tl-yellow: #FEBC2E;
+  --color-tl-green:  #28C840;
+
+  /* --------------------------------------------------------
+   * Typography — families
+   * Display: Montserrat Alternates (distinctive letterforms, brand-defining)
+   * Body:    Inter 18pt optical size
+   * Mono:    JetBrains Mono
+   * -------------------------------------------------------- */
+  --font-display: "Montserrat Alternates", "Montserrat", system-ui, sans-serif;
+  --font-body:    "Inter", system-ui, sans-serif;
+  --font-body-lg: "Inter Large", "Inter", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Fluid type scale */
+  --text-display: clamp(56px, 10vw, 96px);
+  --text-h1:      clamp(36px, 6vw, 64px);
+  --text-h2:      clamp(24px, 3.5vw, 40px);
+  --text-h3:      20px;
+  --text-body-lg: 18px;
+  --text-body:    15px;
+  --text-label:   12px;
+  --text-mono:    13px;
+
+  /* --------------------------------------------------------
+   * Spacing & layout
+   * -------------------------------------------------------- */
+  --container-max:     1120px;
+  --container-padding: clamp(20px, 5vw, 80px);
+  --section-padding-y: clamp(80px, 10vw, 140px);
+  --section-gap:       clamp(60px, 8vw, 100px);
+
+  --spacing-xs:  4px;
+  --spacing-sm:  8px;
+  --spacing-md:  16px;
+  --spacing-lg:  24px;
+  --spacing-xl:  40px;
+  --spacing-2xl: 64px;
+
+  /* Radii */
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;
+  --radius-full: 100px;
+
+  /* Shadows / glows */
+  --glow-primary:        0 0 32px rgba(115, 243, 164, 0.35);
+  --glow-primary-strong: 0 0 48px rgba(115, 243, 164, 0.55);
+  --shadow-card:         0 8px 32px rgba(0, 0, 0, 0.35);
+  --shadow-elev:         0 16px 56px rgba(0, 0, 0, 0.45);
+
+  /* Motion */
+  --ease-out:        cubic-bezier(0.16, 1, 0.30, 1);
+  --ease-in-out:     cubic-bezier(0.40, 0, 0.20, 1);
+  --ease-flow:       cubic-bezier(0.22, 1, 0.36, 1);   /* gentle settle — automation entries */
+  --ease-spring:     cubic-bezier(0.20, 1.08, 0.55, 1); /* confident nudge — not bouncy */
+  --duration-fast:   150ms;
+  --duration-base:   300ms;
+  --duration-slow:   500ms;
+  --duration-enter:  600ms;
+
+  /* Glass / blur */
+  --blur-card:    16px;
+  --blur-overlay: 24px;
+}
+
+/* ============================================================
+ * Semantic resets — body defaults to dark theme.
+ * ============================================================ */
+html, body {
+  background: var(--color-black-1);
+  color: var(--color-white-1);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: 1.65;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-primary);
+  color: var(--color-black-1);
+}
+
+/* ============================================================
+ * Semantic type — apply via element OR class for in-content use.
+ * ============================================================ */
+.display, .ds-display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-display);
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  color: var(--color-white-1);
+}
+
+h1, .h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-h1);
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  color: var(--color-white-1);
+}
+
+h2, .h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-h2);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--color-white-1);
+}
+
+h3, .h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-h3);
+  letter-spacing: -0.01em;
+  color: var(--color-white-1);
+}
+
+.body-lg, p.body-lg {
+  font-family: var(--font-body-lg);
+  font-weight: 400;
+  font-size: var(--text-body-lg);
+  line-height: 1.7;
+  color: var(--color-white-1);
+}
+
+p, .body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-body);
+  line-height: 1.65;
+  color: var(--color-white-1);
+}
+
+.muted { color: var(--color-muted-text); }
+.muted-soft { color: var(--color-muted-text-light); }
+
+.label, .eyebrow {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-label);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-muted-text);
+}
+
+code, kbd, samp, .mono {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: var(--text-mono);
+  line-height: 1.8;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+a:hover { color: var(--color-secondary); }
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--color-divider);
+}
+
+/* Highlight in body copy */
+.accent { color: var(--color-primary); }

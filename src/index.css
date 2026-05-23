@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(250,250,250,0.12); border-radius: 100px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(250,250,250,0.22); }
+
+/* ── Selection ── */
+::selection { background: #73F3A4; color: #0F0F0F; }
+
+/* ── Ambient background glow ── */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -10%;
+  background:
+    radial-gradient(60vw 60vw at 12% 8%, rgba(115,243,164,0.05), transparent 60%),
+    radial-gradient(50vw 50vw at 88% 92%, rgba(115,243,164,0.04), transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Utilities not expressible cleanly in Tailwind ── */
+@layer utilities {
+  .glass-card {
+    @apply bg-black-2 border border-glass-border rounded-lg;
+  }
+  .glass-card-hover {
+    @apply transition-colors duration-200 hover:border-glass-border-strong;
+  }
+  .btn-glow:hover {
+    box-shadow: 0 0 32px rgba(115,243,164,0.35);
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #73F3A4;
+    box-shadow: 0 0 8px #73F3A4;
+    animation: pulse-dot 2.4s ease-in-out infinite;
+  }
+}
+
+/* ── Table last row no border ── */
+tbody tr:last-child td { border-bottom: none !important; }
+
+/* ── Segmented control active ── */
+.seg-active {
+  background: #0F0F0F;
+  color: #FAFAFA;
+  box-shadow: inset 0 0 0 1px rgba(115,243,164,0.15);
+  border-radius: 100px;
+}
