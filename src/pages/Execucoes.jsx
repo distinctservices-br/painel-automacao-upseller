@@ -75,17 +75,27 @@ const PERIODOS = [
 // ── Tela ───────────────────────────────────────────────────────────────────
 
 export default function Execucoes() {
-  const { execucoes, clientes, loading, fetchExecucoes, fetchClientesFiltro } = useExecucoes()
+  const {
+    execucoes, clientes, lojas, loading,
+    fetchExecucoes, fetchClientesFiltro, fetchLojasFiltro,
+  } = useExecucoes()
   const [clienteId, setClienteId] = useState('')
+  const [lojaId,    setLojaId]    = useState('')
   const [periodo,   setPeriodo]   = useState('hoje')
 
   useEffect(() => {
     fetchClientesFiltro()
   }, [fetchClientesFiltro])
 
+  // Quando muda o cliente, recarrega lojas e limpa seleção de loja
   useEffect(() => {
-    fetchExecucoes({ clienteId: clienteId || null, periodo })
-  }, [fetchExecucoes, clienteId, periodo])
+    setLojaId('')
+    fetchLojasFiltro(clienteId || null)
+  }, [fetchLojasFiltro, clienteId])
+
+  useEffect(() => {
+    fetchExecucoes({ clienteId: clienteId || null, lojaId: lojaId || null, periodo })
+  }, [fetchExecucoes, clienteId, lojaId, periodo])
 
   const metricas   = calcMetricas(execucoes)
   const porLoja    = agruparPorLoja(execucoes)
@@ -127,7 +137,7 @@ export default function Execucoes() {
               <i className="ti ti-download text-[14px]" /> Exportar CSV
             </button>
             <button
-              onClick={() => fetchExecucoes({ clienteId: clienteId || null, periodo })}
+              onClick={() => fetchExecucoes({ clienteId: clienteId || null, lojaId: lojaId || null, periodo })}
               disabled={loading}
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary text-black-1 text-[12px] font-semibold hover:shadow-glow btn-glow transition-all disabled:opacity-50"
             >
@@ -150,9 +160,31 @@ export default function Execucoes() {
             focus:border-[rgba(115,243,164,0.45)] transition-all
           "
         >
-          <option value="">Todos</option>
+          <option value="">Todos os clientes</option>
           {clientes.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
         </select>
+
+        {/* Loja — só aparece quando há um cliente selecionado com lojas */}
+        {clienteId && lojas.length > 0 && (
+          <>
+            <i className="ti ti-chevron-right text-[14px] text-muted" />
+            <span className="text-[11px] uppercase tracking-[0.08em] text-muted-light mr-1">Loja</span>
+            <select
+              value={lojaId}
+              onChange={(e) => setLojaId(e.target.value)}
+              className="
+                bg-surface border border-[rgba(250,250,250,0.08)] text-white-1
+                rounded-[10px] px-3 py-2 text-[13px] font-body outline-none
+                focus:border-[rgba(115,243,164,0.45)] transition-all
+              "
+            >
+              <option value="">Todas as lojas</option>
+              {lojas.map((l) => (
+                <option key={l.id} value={l.id}>{l.nome_loja} · {l.shop_id}</option>
+              ))}
+            </select>
+          </>
+        )}
 
         <span className="text-[11px] uppercase tracking-[0.08em] text-muted-light ml-3 mr-1">Período</span>
         <div className="flex bg-surface border border-[rgba(250,250,250,0.08)] rounded-full p-[3px] gap-0.5">
