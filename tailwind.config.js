@@ -25,7 +25,7 @@ export default {
         'error-text': '#FF8B85',
       },
       fontFamily: {
-        display: ['"Montserrat Alternates"', 'Montserrat', 'system-ui', 'sans-serif'],
+        display: ['Montserrat', 'system-ui', 'sans-serif'],
         body:    ['Inter', 'system-ui', 'sans-serif'],
         mono:    ['"JetBrains Mono"', 'ui-monospace', 'SF Mono', 'Menlo', 'monospace'],
       },

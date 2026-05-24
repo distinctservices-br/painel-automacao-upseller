@@ -176,6 +176,9 @@ if %errorlevel% neq 0 (
 echo Instalando dependencias...
 call npm install playwright 2>nul
 
+echo Baixando browser Chromium (pode demorar na primeira vez)...
+call npx playwright install chromium 2>nul
+
 echo.
 echo Iniciando processo...
 node configurar_loja.js
