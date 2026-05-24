@@ -194,18 +194,39 @@ function Pagination({ page, total, perPage, onChange }) {
 // ── Mini gráfico de barras ──────────────────────────────────────────────────
 
 function Bars({ values }) {
-  const max = Math.max(...values, 1)
+  const max    = Math.max(...values, 1)
+  const BAR_H  = 52  // px — altura máxima das barras
+  const LABEL_H = 18 // px — espaço reservado para o número acima
+
   return (
-    <div className="flex items-end gap-[3px] h-[40px]">
-      {values.map((v, i) => (
-        <div
-          key={i}
-          title={`${v} pedidos`}
-          className={`flex-1 rounded-t-[2px] min-h-[3px] transition-opacity hover:opacity-70
-            ${v === 0 ? 'bg-[rgba(250,250,250,0.08)]' : 'bg-gradient-to-b from-primary to-[rgba(115,243,164,0.40)]'}`}
-          style={{ height: `${Math.max(5, (v / max) * 100)}%` }}
-        />
-      ))}
+    <div className="flex items-end gap-[3px]" style={{ height: BAR_H + LABEL_H + 'px' }}>
+      {values.map((v, i) => {
+        const barPx = v === 0 ? 3 : Math.max(6, Math.round((v / max) * BAR_H))
+        return (
+          <div
+            key={i}
+            className="flex-1 flex flex-col items-center justify-end h-full gap-[3px]"
+          >
+            {/* Número acima da barra — invisible mantém espaço quando v=0 */}
+            <span
+              className={`font-mono text-[9px] leading-none tracking-tight text-primary
+                ${v > 0 ? 'opacity-80' : 'invisible'}`}
+            >
+              {v}
+            </span>
+            {/* Barra */}
+            <div
+              title={`${v} pedidos`}
+              className={`w-full rounded-t-[2px] transition-opacity hover:opacity-80
+                ${v === 0
+                  ? 'bg-[rgba(250,250,250,0.07)]'
+                  : 'bg-gradient-to-b from-primary to-[rgba(115,243,164,0.40)]'
+                }`}
+              style={{ height: `${barPx}px` }}
+            />
+          </div>
+        )
+      })}
     </div>
   )
 }
