@@ -194,28 +194,28 @@ function Pagination({ page, total, perPage, onChange }) {
 // ── Mini gráfico de barras ──────────────────────────────────────────────────
 
 function Bars({ values, days = [] }) {
-  const max     = Math.max(...values, 1)
-  const BAR_H   = 52  // px — altura máxima das barras
-  const NUM_H   = 18  // px — espaço acima para o número
-  const AXIS_H  = 16  // px — espaço abaixo para a data
-  const n       = values.length
+  const max    = Math.max(...values, 1)
+  const BAR_H  = 52  // px — altura máxima das barras
+  const NUM_H  = 18  // px — espaço acima para o número
+  const AXIS_H = 24  // px — espaço abaixo para a data
+  const n      = values.length
 
   // A cada quantas colunas mostrar um label de data
   const step = n <= 7 ? 1 : n <= 14 ? 2 : n <= 21 ? 3 : 5
 
-  // Formato da data — curto para muitas colunas
+  // Sempre inclui o mês para evitar ambiguidade quando cruza meses
   const fmtDay = (iso) => {
     if (!iso) return ''
-    const d   = new Date(iso + 'T12:00:00') // noon evita problemas de timezone
+    const d   = new Date(iso + 'T12:00:00')
     const dia = d.getDate()
     const mes = d.getMonth() + 1
-    return n <= 14 ? `${dia}/${mes}` : `${dia}`
+    return `${dia}/${mes}`
   }
 
   return (
     <div className="flex flex-col">
       {/* ── Barras com número acima ── */}
-      <div className="flex items-end gap-[3px]" style={{ height: BAR_H + NUM_H + 'px' }}>
+      <div className="flex items-end gap-[3px]" style={{ height: `${BAR_H + NUM_H}px` }}>
         {values.map((v, i) => {
           const barPx = v === 0 ? 3 : Math.max(6, Math.round((v / max) * BAR_H))
           return (
@@ -228,7 +228,7 @@ function Bars({ values, days = [] }) {
                 {v}
               </span>
               <div
-                title={days[i] ? `${days[i]}: ${v} pedidos` : `${v} pedidos`}
+                title={days[i] ? `${fmtDay(days[i])}: ${v} pedidos` : `${v} pedidos`}
                 className={`w-full rounded-t-[2px] transition-opacity hover:opacity-80
                   ${v === 0
                     ? 'bg-[rgba(250,250,250,0.07)]'
@@ -243,11 +243,11 @@ function Bars({ values, days = [] }) {
 
       {/* ── Eixo de datas abaixo ── */}
       {days.length > 0 && (
-        <div className="flex gap-[3px] pt-1" style={{ height: AXIS_H + 'px' }}>
+        <div className="flex gap-[3px] pt-1.5" style={{ height: `${AXIS_H}px` }}>
           {days.map((d, i) => (
-            <div key={i} className="flex-1 flex justify-center overflow-hidden">
+            <div key={i} className="flex-1 flex justify-center">
               {i % step === 0 && (
-                <span className="font-mono text-[8px] leading-none text-muted-light whitespace-nowrap">
+                <span className="font-mono text-[10px] leading-none text-muted whitespace-nowrap select-none">
                   {fmtDay(d)}
                 </span>
               )}
