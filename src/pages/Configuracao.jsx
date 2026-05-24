@@ -20,11 +20,11 @@ function isServiceRole(key) {
 
 function PageHeader({ eyebrow, title, sub }) {
   return (
-    <div className="flex justify-between items-end gap-6 mb-7 pb-5 border-b border-divider">
+    <div className="flex flex-wrap justify-between items-end gap-4 mb-6 pb-5 border-b border-divider">
       <div>
         {eyebrow && <p className="text-[11px] tracking-[0.12em] uppercase text-primary font-body mb-2">{eyebrow}</p>}
-        <h1 className="font-display font-bold text-[28px] tracking-tight leading-none m-0">{title}</h1>
-        {sub && <p className="text-muted text-[13px] mt-1">{sub}</p>}
+        <h1 className="font-display font-bold text-[22px] sm:text-[28px] tracking-tight leading-none">{title}</h1>
+        {sub && <p className="text-muted text-[12px] sm:text-[13px] mt-1">{sub}</p>}
       </div>
     </div>
   )
@@ -134,7 +134,7 @@ export default function Configuracao() {
         sub="Conexão com o backend, chaves de API e canal de alertas."
       />
 
-      <div className="max-w-[640px]">
+      <div className="w-full max-w-[640px]">
         {/* Alertas */}
         {anonKeyVazia && (
           <div className="flex items-center gap-3 px-4 py-3 mb-5 rounded-lg bg-[rgba(255,95,87,0.08)] border border-[rgba(255,95,87,0.25)] text-error-text text-[13px]">
@@ -246,7 +246,7 @@ export default function Configuracao() {
         </div>
 
         {/* Info cards de runtime */}
-        <div className="grid grid-cols-3 gap-3.5 mt-7">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
           {[
             { label: 'Schedule',     value: '*/30 06:30-13:30', sub: 'dias úteis' },
             { label: 'Retry policy', value: '3× · 60s',          sub: 'backoff fixo' },

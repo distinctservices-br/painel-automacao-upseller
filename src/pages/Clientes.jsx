@@ -23,13 +23,13 @@ function Field({ label, help, children }) {
 
 function PageHeader({ eyebrow, title, sub, actions }) {
   return (
-    <div className="flex justify-between items-end gap-6 mb-7 pb-5 border-b border-divider">
+    <div className="flex flex-wrap justify-between items-end gap-4 mb-6 pb-5 border-b border-divider">
       <div>
         {eyebrow && <p className="text-[11px] tracking-[0.12em] uppercase text-primary font-body mb-2">{eyebrow}</p>}
-        <h1 className="font-display font-bold text-[28px] tracking-tight leading-none">{title}</h1>
-        {sub && <p className="text-muted text-[13px] mt-1">{sub}</p>}
+        <h1 className="font-display font-bold text-[22px] sm:text-[28px] tracking-tight leading-none">{title}</h1>
+        {sub && <p className="text-muted text-[12px] sm:text-[13px] mt-1">{sub}</p>}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex items-center gap-2 flex-wrap">{actions}</div>}
     </div>
   )
 }
@@ -105,10 +105,10 @@ function ModalWrapper({ title, sub, onClose, size = '', footer, children }) {
 
   return (
     <div
-      className="fixed inset-0 bg-[rgba(15,15,15,0.70)] backdrop-blur-md z-50 grid place-items-center p-6 animate-fade-in"
+      className="fixed inset-0 bg-[rgba(15,15,15,0.70)] backdrop-blur-md z-50 grid place-items-end sm:place-items-center p-0 sm:p-6 animate-fade-in"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className={`bg-black-2 border border-glass-border rounded-lg shadow-elev w-full max-h-[90vh] overflow-auto animate-slide-up ${size === 'lg' ? 'max-w-[680px]' : 'max-w-[520px]'}`}>
+      <div className={`bg-black-2 border-t sm:border border-glass-border rounded-t-xl sm:rounded-lg shadow-elev w-full max-h-[92vh] overflow-auto animate-slide-up ${size === 'lg' ? 'sm:max-w-[680px]' : 'sm:max-w-[520px]'}`}>
         <div className="flex justify-between items-start gap-3 px-6 py-5 border-b border-divider">
           <div>
             <h2 className="font-display font-bold text-[17px] tracking-tight">{title}</h2>

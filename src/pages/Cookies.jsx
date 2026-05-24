@@ -8,13 +8,13 @@ import { sendAlert, shouldAlert, markAlerted } from '@/lib/email'
 
 function PageHeader({ eyebrow, title, sub, actions }) {
   return (
-    <div className="flex justify-between items-end gap-6 mb-7 pb-5 border-b border-divider">
+    <div className="flex flex-wrap justify-between items-end gap-4 mb-6 pb-5 border-b border-divider">
       <div>
         {eyebrow && <p className="text-[11px] tracking-[0.12em] uppercase text-primary font-body mb-2">{eyebrow}</p>}
-        <h1 className="font-display font-bold text-[28px] tracking-tight leading-none">{title}</h1>
-        {sub && <p className="text-muted text-[13px] mt-1">{sub}</p>}
+        <h1 className="font-display font-bold text-[22px] sm:text-[28px] tracking-tight leading-none">{title}</h1>
+        {sub && <p className="text-muted text-[12px] sm:text-[13px] mt-1">{sub}</p>}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex items-center gap-2 flex-wrap">{actions}</div>}
     </div>
   )
 }
@@ -60,9 +60,9 @@ function LojaCard({ loja, onRenovar }) {
   const isExpiring = status === 'expirando' || status === 'expirado'
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-black-1 border border-divider">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-3 rounded-lg bg-black-1 border border-divider">
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <p className="text-[13px] font-medium text-white-1 truncate">{loja.nome_loja}</p>
           <CookieBadge status={status} />
         </div>
@@ -73,7 +73,7 @@ function LojaCard({ loja, onRenovar }) {
       <button
         onClick={() => onRenovar(loja)}
         className={`
-          flex-shrink-0 ml-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium transition-all
+          self-start sm:self-auto flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium transition-all
           ${isExpiring
             ? 'bg-primary text-black-1 font-semibold hover:shadow-glow btn-glow'
             : 'border border-divider text-muted hover:border-[rgba(250,250,250,0.30)] hover:text-white-1 hover:bg-muted-surface'
