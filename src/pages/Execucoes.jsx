@@ -194,11 +194,11 @@ function Pagination({ page, total, perPage, onChange }) {
 // ── Mini gráfico de barras ──────────────────────────────────────────────────
 
 function Bars({ values, days = [] }) {
-  const max    = Math.max(...values, 1)
-  const BAR_H  = 52  // px — altura máxima das barras
-  const NUM_H  = 18  // px — espaço acima para o número
-  const AXIS_H = n > 10 ? 32 : 18  // px — rotacionado precisa de mais altura
   const n      = values.length
+  const max    = Math.max(...values, 1)
+  const BAR_H  = 52
+  const NUM_H  = 18
+  const AXIS_H = n > 10 ? 32 : 18
 
   const fmtDay = (iso) => {
     if (!iso) return ''
