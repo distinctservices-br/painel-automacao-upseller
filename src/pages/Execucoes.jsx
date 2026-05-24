@@ -197,19 +197,13 @@ function Bars({ values, days = [] }) {
   const max    = Math.max(...values, 1)
   const BAR_H  = 52  // px — altura máxima das barras
   const NUM_H  = 18  // px — espaço acima para o número
-  const AXIS_H = 24  // px — espaço abaixo para a data
+  const AXIS_H = n > 10 ? 32 : 18  // px — rotacionado precisa de mais altura
   const n      = values.length
 
-  // A cada quantas colunas mostrar um label de data
-  const step = n <= 7 ? 1 : n <= 14 ? 2 : n <= 21 ? 3 : 5
-
-  // Sempre inclui o mês para evitar ambiguidade quando cruza meses
   const fmtDay = (iso) => {
     if (!iso) return ''
     const d   = new Date(iso + 'T12:00:00')
-    const dia = d.getDate()
-    const mes = d.getMonth() + 1
-    return `${dia}/${mes}`
+    return `${d.getDate()}/${d.getMonth() + 1}`
   }
 
   return (
@@ -241,16 +235,24 @@ function Bars({ values, days = [] }) {
         })}
       </div>
 
-      {/* ── Eixo de datas abaixo ── */}
+      {/* ── Eixo de datas — todas as colunas, rotacionado -45° para caber ── */}
       {days.length > 0 && (
-        <div className="flex gap-[3px] pt-1.5" style={{ height: `${AXIS_H}px` }}>
+        <div className="flex gap-[3px] mt-1" style={{ height: `${AXIS_H}px` }}>
           {days.map((d, i) => (
-            <div key={i} className="flex-1 flex justify-center">
-              {i % step === 0 && (
-                <span className="font-mono text-[10px] leading-none text-muted whitespace-nowrap select-none">
-                  {fmtDay(d)}
-                </span>
-              )}
+            <div key={i} className="flex-1 relative" style={{ overflow: 'visible' }}>
+              <span
+                className="absolute font-mono text-[9px] text-muted whitespace-nowrap select-none leading-none"
+                style={{
+                  top: 0,
+                  left: '50%',
+                  transformOrigin: 'top left',
+                  transform: n > 10
+                    ? 'translateX(-50%) rotate(-45deg)'
+                    : 'translateX(-50%)',
+                }}
+              >
+                {fmtDay(d)}
+              </span>
             </div>
           ))}
         </div>
