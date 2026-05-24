@@ -193,40 +193,68 @@ function Pagination({ page, total, perPage, onChange }) {
 
 // ── Mini gráfico de barras ──────────────────────────────────────────────────
 
-function Bars({ values }) {
-  const max    = Math.max(...values, 1)
-  const BAR_H  = 52  // px — altura máxima das barras
-  const LABEL_H = 18 // px — espaço reservado para o número acima
+function Bars({ values, days = [] }) {
+  const max     = Math.max(...values, 1)
+  const BAR_H   = 52  // px — altura máxima das barras
+  const NUM_H   = 18  // px — espaço acima para o número
+  const AXIS_H  = 16  // px — espaço abaixo para a data
+  const n       = values.length
+
+  // A cada quantas colunas mostrar um label de data
+  const step = n <= 7 ? 1 : n <= 14 ? 2 : n <= 21 ? 3 : 5
+
+  // Formato da data — curto para muitas colunas
+  const fmtDay = (iso) => {
+    if (!iso) return ''
+    const d   = new Date(iso + 'T12:00:00') // noon evita problemas de timezone
+    const dia = d.getDate()
+    const mes = d.getMonth() + 1
+    return n <= 14 ? `${dia}/${mes}` : `${dia}`
+  }
 
   return (
-    <div className="flex items-end gap-[3px]" style={{ height: BAR_H + LABEL_H + 'px' }}>
-      {values.map((v, i) => {
-        const barPx = v === 0 ? 3 : Math.max(6, Math.round((v / max) * BAR_H))
-        return (
-          <div
-            key={i}
-            className="flex-1 flex flex-col items-center justify-end h-full gap-[3px]"
-          >
-            {/* Número acima da barra — invisible mantém espaço quando v=0 */}
-            <span
-              className={`font-mono text-[9px] leading-none tracking-tight text-primary
-                ${v > 0 ? 'opacity-80' : 'invisible'}`}
-            >
-              {v}
-            </span>
-            {/* Barra */}
+    <div className="flex flex-col">
+      {/* ── Barras com número acima ── */}
+      <div className="flex items-end gap-[3px]" style={{ height: BAR_H + NUM_H + 'px' }}>
+        {values.map((v, i) => {
+          const barPx = v === 0 ? 3 : Math.max(6, Math.round((v / max) * BAR_H))
+          return (
             <div
-              title={`${v} pedidos`}
-              className={`w-full rounded-t-[2px] transition-opacity hover:opacity-80
-                ${v === 0
-                  ? 'bg-[rgba(250,250,250,0.07)]'
-                  : 'bg-gradient-to-b from-primary to-[rgba(115,243,164,0.40)]'
-                }`}
-              style={{ height: `${barPx}px` }}
-            />
-          </div>
-        )
-      })}
+              key={i}
+              className="flex-1 flex flex-col items-center justify-end h-full gap-[3px]"
+            >
+              <span className={`font-mono text-[9px] leading-none tracking-tight text-primary
+                ${v > 0 ? 'opacity-80' : 'invisible'}`}>
+                {v}
+              </span>
+              <div
+                title={days[i] ? `${days[i]}: ${v} pedidos` : `${v} pedidos`}
+                className={`w-full rounded-t-[2px] transition-opacity hover:opacity-80
+                  ${v === 0
+                    ? 'bg-[rgba(250,250,250,0.07)]'
+                    : 'bg-gradient-to-b from-primary to-[rgba(115,243,164,0.40)]'
+                  }`}
+                style={{ height: `${barPx}px` }}
+              />
+            </div>
+          )
+        })}
+      </div>
+
+      {/* ── Eixo de datas abaixo ── */}
+      {days.length > 0 && (
+        <div className="flex gap-[3px] pt-1" style={{ height: AXIS_H + 'px' }}>
+          {days.map((d, i) => (
+            <div key={i} className="flex-1 flex justify-center overflow-hidden">
+              {i % step === 0 && (
+                <span className="font-mono text-[8px] leading-none text-muted-light whitespace-nowrap">
+                  {fmtDay(d)}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -281,19 +309,29 @@ export default function Execucoes() {
   const metricas = useMemo(() => calcMetricas(execucoes), [execucoes])
   const porLoja  = useMemo(() => agruparPorLoja(execucoes), [execucoes])
 
-  // Últimos N dias para o gráfico (dinâmico pelo filtro)
+  // Dias do gráfico — derivados do range real do filtro ativo
   const chartDays = useMemo(() => {
-    const n = filtroTipo === '30d' ? 30 : filtroTipo === 'mes_especifico' ? 31 : 7
-    const { inicio } = rangeFromPreset(filtroTipo, mesAno)
-    const base = inicio ? new Date(inicio) : new Date()
+    let startIso, endIso
+
+    if (filtroTipo === 'personalizado') {
+      if (!dateRange.inicio || !dateRange.fim) return []
+      startIso = dateRange.inicio
+      endIso   = dateRange.fim
+    } else {
+      const { inicio, fim } = rangeFromPreset(filtroTipo, mesAno)
+      startIso = inicio?.slice(0, 10) ?? new Date().toISOString().slice(0, 10)
+      endIso   = fim?.slice(0, 10)   ?? startIso
+    }
+
     const days = []
-    for (let i = 0; i < n; i++) {
-      const d = new Date(base)
-      d.setDate(base.getDate() + i)
-      days.push(d.toISOString().slice(0, 10))
+    const cur  = new Date(startIso + 'T12:00:00')
+    const end  = new Date(endIso   + 'T12:00:00')
+    while (cur <= end && days.length < 31) {
+      days.push(cur.toISOString().slice(0, 10))
+      cur.setDate(cur.getDate() + 1)
     }
     return days
-  }, [filtroTipo, mesAno])
+  }, [filtroTipo, mesAno, dateRange])
 
   // Paginação
   const totalPages   = Math.ceil(execucoes.length / PER_PAGE)
@@ -590,15 +628,17 @@ export default function Execucoes() {
             <span className="font-mono text-[11px] text-muted">{labelPeriodo(filtroTipo, mesAno, dateRange)}</span>
           </div>
           <div className="flex flex-col gap-4">
-            {porLoja.map(v => {
-              const bars = chartDays.slice(0, 30).map(d => v.dias[d] ?? 0)
+            {porLoja.map((v, lojaIdx) => {
+              const bars = chartDays.map(d => v.dias[d] ?? 0)
+              // Mostra eixo de datas apenas na última loja (eixo X compartilhado)
+              const showDays = lojaIdx === porLoja.length - 1
               return (
-                <div key={v.loja_id} className="flex flex-col gap-1.5">
+                <div key={v.loja_id} className="flex flex-col gap-1">
                   <div className="flex justify-between items-center text-[12px]">
                     <span className="text-muted truncate pr-4">{v.nome_loja}</span>
                     <span className="font-mono text-white-1 flex-shrink-0">{v.total} ped.</span>
                   </div>
-                  <Bars values={bars} />
+                  <Bars values={bars} days={showDays ? chartDays : []} />
                 </div>
               )
             })}
