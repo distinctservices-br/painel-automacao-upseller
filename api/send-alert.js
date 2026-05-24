@@ -1,13 +1,3 @@
-/**
- * Vercel Serverless Function — /api/send-alert
- * Envia alertas via Resend sem expor a API key no frontend.
- *
- * Env var obrigatória no Vercel Dashboard:
- *   RESEND_API_KEY = re_Z1QbgYBh_KH3kst3KZyLGwTadkxLNEVQh
- *
- * "from" padrão: onboarding@resend.dev (funciona sem domínio verificado).
- * Troque por um domínio seu verificado no Resend quando quiser.
- */
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
