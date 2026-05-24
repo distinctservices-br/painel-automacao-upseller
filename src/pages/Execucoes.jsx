@@ -198,7 +198,7 @@ function Bars({ values, days = [] }) {
   const max    = Math.max(...values, 1)
   const BAR_H  = 52
   const NUM_H  = 18
-  const AXIS_H = n > 10 ? 32 : 18
+  const AXIS_H = 18
 
   const fmtDay = (iso) => {
     if (!iso) return ''
@@ -235,22 +235,12 @@ function Bars({ values, days = [] }) {
         })}
       </div>
 
-      {/* ── Eixo de datas — todas as colunas, rotacionado -45° para caber ── */}
+      {/* ── Eixo de datas — todas as colunas, horizontal ── */}
       {days.length > 0 && (
         <div className="flex gap-[3px] mt-1" style={{ height: `${AXIS_H}px` }}>
           {days.map((d, i) => (
-            <div key={i} className="flex-1 relative" style={{ overflow: 'visible' }}>
-              <span
-                className="absolute font-mono text-[9px] text-muted whitespace-nowrap select-none leading-none"
-                style={{
-                  top: 0,
-                  left: '50%',
-                  transformOrigin: 'top left',
-                  transform: n > 10
-                    ? 'translateX(-50%) rotate(-45deg)'
-                    : 'translateX(-50%)',
-                }}
-              >
+            <div key={i} className="flex-1 flex items-start justify-center overflow-hidden">
+              <span className="font-mono text-[8px] text-muted leading-none select-none whitespace-nowrap">
                 {fmtDay(d)}
               </span>
             </div>
