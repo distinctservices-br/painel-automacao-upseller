@@ -53,14 +53,13 @@ function expiracaoLabel(status, iso) {
   return `expirado há ${dias}d`
 }
 
-// ── Card de loja (dentro do accordion) ────────────────────────────────────
+// ── Linha de loja (dentro do accordion, sem botão) ────────────────────────
 
-function LojaCard({ loja, onRenovar }) {
-  const status     = calcCookieStatus(loja.cookie_renovado_em)
-  const isExpiring = status === 'expirando' || status === 'expirado'
+function LojaRow({ loja }) {
+  const status = calcCookieStatus(loja.cookie_renovado_em)
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-3 rounded-lg bg-black-1 border border-divider">
+    <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-black-1 border border-divider">
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-[13px] font-medium text-white-1 truncate">{loja.nome_loja}</p>
@@ -70,19 +69,6 @@ function LojaCard({ loja, onRenovar }) {
           {loja.shop_id} · {formatDate(loja.cookie_renovado_em)} · {expiracaoLabel(status, loja.cookie_renovado_em)}
         </p>
       </div>
-      <button
-        onClick={() => onRenovar(loja)}
-        className={`
-          self-start sm:self-auto flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium transition-all
-          ${isExpiring
-            ? 'bg-primary text-black-1 font-semibold hover:shadow-glow btn-glow'
-            : 'border border-divider text-muted hover:border-[rgba(250,250,250,0.30)] hover:text-white-1 hover:bg-muted-surface'
-          }
-        `}
-      >
-        <i className="ti ti-download text-[13px]" />
-        Renovar
-      </button>
     </div>
   )
 }
@@ -96,33 +82,51 @@ function ClienteAccordion({ cliente, onRenovar, defaultOpen }) {
     const s = calcCookieStatus(l.cookie_renovado_em)
     return s === 'expirando' || s === 'expirado'
   }).length
+  const hasIssues = countIssues > 0
 
   return (
     <div className="bg-black-2 border border-divider rounded-lg overflow-hidden">
-      {/* Header clicável */}
-      <button
-        onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center justify-between px-5 py-4 hover:bg-muted-surface transition-colors text-left"
-      >
-        <div className="flex items-center gap-3">
-          <span className="font-display font-semibold text-[14px]">{cliente.nome}</span>
-          {countIssues > 0 && (
-            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[rgba(255,95,87,0.10)] border border-[rgba(255,95,87,0.25)] text-error-text">
-              {countIssues} {countIssues === 1 ? 'alerta' : 'alertas'}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-[11px] text-muted">{cliente.lojas.length} {cliente.lojas.length === 1 ? 'loja' : 'lojas'}</span>
-          <i className={`ti ti-chevron-down text-muted text-[16px] transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
-        </div>
-      </button>
+      {/* Header */}
+      <div className="flex items-center gap-2 px-4 sm:px-5 py-3.5">
+        {/* Toggle (clica em quase toda a área do header) */}
+        <button
+          onClick={() => setOpen(v => !v)}
+          className="flex-1 flex items-center justify-between gap-3 min-w-0 text-left -mx-2 px-2 py-1 rounded-[6px] hover:bg-muted-surface transition-colors"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <i className={`ti ti-chevron-right text-muted text-[14px] transition-transform duration-200 flex-shrink-0 ${open ? 'rotate-90' : ''}`} />
+            <span className="font-display font-semibold text-[14px] truncate">{cliente.nome}</span>
+            {hasIssues && (
+              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[rgba(255,95,87,0.10)] border border-[rgba(255,95,87,0.25)] text-error-text flex-shrink-0">
+                {countIssues} {countIssues === 1 ? 'alerta' : 'alertas'}
+              </span>
+            )}
+          </div>
+          <span className="text-[11px] text-muted flex-shrink-0 hidden sm:block">
+            {cliente.lojas.length} {cliente.lojas.length === 1 ? 'loja' : 'lojas'}
+          </span>
+        </button>
+
+        {/* Botão Renovar — atualiza TODAS as lojas do cliente */}
+        <button
+          onClick={() => onRenovar(cliente)}
+          className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium transition-all
+            ${hasIssues
+              ? 'bg-primary text-black-1 font-semibold hover:shadow-glow btn-glow'
+              : 'border border-divider text-muted hover:border-[rgba(250,250,250,0.30)] hover:text-white-1 hover:bg-muted-surface'
+            }`}
+          title="Baixa um .bat que renova o cookie de todas as lojas deste cliente"
+        >
+          <i className="ti ti-download text-[13px]" />
+          <span className="hidden sm:inline">Renovar</span>
+        </button>
+      </div>
 
       {/* Lojas */}
       {open && (
-        <div className="flex flex-col gap-2 px-4 pb-4">
+        <div className="flex flex-col gap-2 px-4 pb-4 border-t border-divider pt-3">
           {cliente.lojas.map(loja => (
-            <LojaCard key={loja.id} loja={loja} onRenovar={onRenovar} />
+            <LojaRow key={loja.id} loja={loja} />
           ))}
         </div>
       )}
@@ -215,9 +219,9 @@ export default function Cookies() {
 
   useEffect(() => { fetchLojas() }, [fetchLojas])
 
-  const renovarManualmente = (loja) => {
-    downloadBat(loja, 'renovar')
-    toast.success(`Script de renovacao baixado para ${loja.nome_loja}`, {
+  const renovarCliente = (cliente) => {
+    downloadBat(cliente, 'renovar')
+    toast.success(`Script baixado — renova ${cliente.lojas.length} loja(s) de ${cliente.nome}`, {
       style: { background: '#1E1E1E', color: '#FAFAFA', border: '1px solid rgba(115,243,164,0.30)' },
     })
   }
@@ -269,7 +273,7 @@ export default function Cookies() {
             <ClienteAccordion
               key={c.id}
               cliente={c}
-              onRenovar={renovarManualmente}
+              onRenovar={renovarCliente}
               defaultOpen={i === 0 || c.lojas.some(l => {
                 const s = calcCookieStatus(l.cookie_renovado_em)
                 return s === 'expirando' || s === 'expirado'

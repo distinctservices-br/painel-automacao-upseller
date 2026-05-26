@@ -189,12 +189,11 @@ function NovoClienteModal({ onClose, onCreate, loading }) {
 
 // ── Modal .bat ─────────────────────────────────────────────────────────────
 
-function BatModal({ lojas, cliente, onClose }) {
+function BatModal({ cliente, onClose }) {
   const { gerarBat } = useClientes()
-  const [sel, setSel] = useState(0)
-  const loja = lojas[sel]
-  const batContent = gerarBat(loja)
-  const filename = `configurar_${(loja.nome_loja ?? '').toLowerCase().replace(/\s+/g, '_')}.bat`
+  const batContent = gerarBat(cliente)
+  const filename   = `configurar_${(cliente.nome ?? '').toLowerCase().replace(/\s+/g, '_')}.bat`
+  const lojasCount = cliente.lojas?.length ?? 0
 
   const download = () => {
     const blob = new Blob([batContent], { type: 'application/octet-stream' })
@@ -217,8 +216,8 @@ function BatModal({ lojas, cliente, onClose }) {
 
   return (
     <ModalWrapper
-      title={`Configurar loja — ${cliente.nome}`}
-      sub="Execute o .bat como administrador em C:\\n8n-upseller no Windows do cliente."
+      title={`Configurar cliente — ${cliente.nome}`}
+      sub={`Faz UM login no Upseller e renova o cookie de ${lojasCount === 1 ? '1 loja' : `todas as ${lojasCount} lojas`} do cliente. Execute como administrador em C:\\n8n-upseller.`}
       onClose={onClose}
       size="lg"
       footer={
@@ -235,20 +234,22 @@ function BatModal({ lojas, cliente, onClose }) {
         </>
       }
     >
-      {lojas.length > 1 && (
-        <div className="flex gap-1.5 flex-wrap">
-          {lojas.map((l, i) => (
-            <button
-              key={l.id ?? i}
-              onClick={() => setSel(i)}
-              className={`px-3 py-1 rounded-full text-[12px] border transition-all ${sel === i ? 'bg-primary text-black-1 border-primary font-semibold' : 'border-divider text-muted hover:border-glass-border hover:text-white-1'}`}
-            >
-              {l.nome_loja}
-            </button>
+      {/* Lista de lojas afetadas */}
+      {cliente.lojas && cliente.lojas.length > 0 && (
+        <div className="flex flex-col gap-1 px-3 py-2.5 rounded-[8px] bg-muted-surface border border-divider">
+          <p className="text-[11px] uppercase tracking-[0.07em] text-muted mb-1">
+            Lojas que serão atualizadas
+          </p>
+          {cliente.lojas.map(l => (
+            <div key={l.id} className="flex items-center justify-between text-[12px]">
+              <span className="text-white-1 truncate">{l.nome_loja}</span>
+              <span className="font-mono text-[11px] text-muted ml-2">{l.shop_id}</span>
+            </div>
           ))}
         </div>
       )}
 
+      {/* Terminal preview */}
       <div className="bg-[#080808] border border-divider rounded-[10px] overflow-hidden font-mono text-[12px] leading-[1.65]">
         <div className="flex items-center gap-1.5 px-3 py-2 border-b border-divider">
           <span className="w-[10px] h-[10px] rounded-full bg-[#FF5F57]" />
@@ -448,8 +449,11 @@ export default function Clientes() {
     const result = await criarCliente(form)
     if (!result) return
     setNewOpen(false)
-    const lojasMapped = result.lojas.map(l => ({ id: l.id, nome_loja: l.nome_loja, shop_id: l.shop_id }))
-    setBatData({ lojas: lojasMapped, cliente: { ...result.cliente, nome: form.nome } })
+    setBatData({
+      ...result.cliente,
+      nome:  form.nome,
+      lojas: result.lojas.map(l => ({ id: l.id, nome_loja: l.nome_loja, shop_id: l.shop_id })),
+    })
   }
 
   const handleEditCli  = async (id, dados) => { const ok = await editarCliente(id, dados); if (ok) setEditCli(null) }
@@ -457,7 +461,7 @@ export default function Clientes() {
 
   const abrirBat = (cliente) => {
     if (!cliente.lojas.length) { toast.error('Cliente sem lojas.'); return }
-    setBatData({ lojas: cliente.lojas, cliente })
+    setBatData(cliente)
   }
 
   return (
@@ -522,7 +526,7 @@ export default function Clientes() {
       )}
 
       {newOpen       && <NovoClienteModal   onClose={() => setNewOpen(false)}    onCreate={handleCriar}    loading={loading} />}
-      {batData       && <BatModal           lojas={batData.lojas}                cliente={batData.cliente} onClose={() => setBatData(null)} />}
+      {batData       && <BatModal           cliente={batData}                    onClose={() => setBatData(null)} />}
       {editCli       && <EditarClienteModal cliente={editCli}                    onClose={() => setEditCli(null)}      onSave={handleEditCli}  loading={loading} />}
       {editLojaData  && <EditarLojaModal    loja={editLojaData}                  onClose={() => setEditLojaData(null)} onSave={handleEditLoja} loading={loading} />}
     </>

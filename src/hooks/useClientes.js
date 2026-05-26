@@ -12,9 +12,11 @@ export function calcCookieStatus(renovadoEm) {
   return 'expirado'
 }
 
-// ── Geração do configurar_loja.js com LOJA_ID substituído ─────────────────
+// ── Geração do configurar_cliente.js com CLIENTE_ID substituído ───────────
+// Faz UM login no Upseller e PATCHa TODAS as lojas do cliente
+// (filtro PATCH: lojas?cliente_id=eq.${CLIENTE_ID})
 
-export function gerarConfigurarLojaJS(lojaId) {
+export function gerarConfigurarClienteJS(clienteId) {
   const supabaseUrl = 'https://wjsvkmewwrwpouijzbrb.supabase.co'
   const serviceKey  = localStorage.getItem('service_role_key') ?? 'COLOQUE_SUA_SERVICE_ROLE_KEY_AQUI'
 
@@ -26,16 +28,16 @@ const path = require('path');
 const readline = require('readline');
 
 // --- CONFIGURACAO -------------------------------------------------------
-const LOJA_ID      = '${lojaId}';
+const CLIENTE_ID   = '${clienteId}';
 const SUPABASE_URL = '${supabaseUrl}';
 const SUPABASE_KEY = '${serviceKey}';
 // ------------------------------------------------------------------------
 
-const LOJA_DIR   = path.join('C:\\\\n8n-upseller\\\\lojas', LOJA_ID);
-const STATE_FILE = path.join(LOJA_DIR, 'browser_state.json');
-const COOKIE_FILE = path.join(LOJA_DIR, 'cookie.txt');
+const CLIENTE_DIR = path.join('C:\\\\n8n-upseller\\\\clientes', CLIENTE_ID);
+const STATE_FILE  = path.join(CLIENTE_DIR, 'browser_state.json');
+const COOKIE_FILE = path.join(CLIENTE_DIR, 'cookie.txt');
 
-fs.mkdirSync(LOJA_DIR, { recursive: true });
+fs.mkdirSync(CLIENTE_DIR, { recursive: true });
 
 async function salvarNoSupabase(cookie, browserState) {
   return new Promise((resolve, reject) => {
@@ -46,18 +48,30 @@ async function salvarNoSupabase(cookie, browserState) {
     });
     const req = https.request({
       hostname: SUPABASE_URL.replace('https://', ''),
-      path: '/rest/v1/lojas?id=eq.' + LOJA_ID,
+      path: '/rest/v1/lojas?cliente_id=eq.' + CLIENTE_ID,
       method: 'PATCH',
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': 'Bearer ' + SUPABASE_KEY,
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(bodyStr),
-        'Prefer': 'return=minimal'
+        'Prefer': 'return=representation'
       }
     }, res => {
-      res.on('data', () => {});
-      res.on('end', () => resolve());
+      let body = '';
+      res.on('data', chunk => { body += chunk; });
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          try {
+            const arr = JSON.parse(body);
+            const qt  = Array.isArray(arr) ? arr.length : 0;
+            console.log('Lojas atualizadas:', qt);
+          } catch (e) { /* ignore parse error */ }
+          resolve();
+        } else {
+          reject(new Error('Supabase respondeu ' + res.statusCode + ': ' + body));
+        }
+      });
     });
     req.on('error', reject);
     req.write(bodyStr);
@@ -68,9 +82,11 @@ async function salvarNoSupabase(cookie, browserState) {
 async function main() {
   console.log('');
   console.log('========================================');
-  console.log('  CONFIGURACAO DA LOJA');
+  console.log('  CONFIGURACAO DO CLIENTE');
   console.log('  Uma janela do browser vai abrir.');
   console.log('  Faca o login no Upseller normalmente.');
+  console.log('  O cookie sera salvo em TODAS as lojas');
+  console.log('  deste cliente em uma unica execucao.');
   console.log('  Quando estiver logado, volte aqui');
   console.log('  e pressione ENTER para continuar.');
   console.log('========================================');
@@ -121,7 +137,7 @@ async function main() {
   console.log('cookie.txt salvo em:', COOKIE_FILE);
 
   await salvarNoSupabase(cookieStr, browserStateObj);
-  console.log('Cookie e browser_state salvos no Supabase!');
+  console.log('Cookie e browser_state aplicados a todas as lojas do cliente!');
 
   await browser.close();
 
@@ -138,7 +154,7 @@ main().catch(err => {
 });`
 }
 
-// ── Geração do .bat com configurar_loja.js embutido em base64 ─────────────
+// ── Geração do .bat com configurar_cliente.js embutido em base64 ──────────
 
 function toBase64Utf8(str) {
   const bytes = new TextEncoder().encode(str)
@@ -147,28 +163,32 @@ function toBase64Utf8(str) {
   return btoa(bin)
 }
 
-export function gerarBat(loja, tipo = 'configurar') {
-  const jsContent = gerarConfigurarLojaJS(loja.id)
+/**
+ * Gera o .bat para o cliente inteiro.
+ * @param {object} cliente — { id, nome, lojas? }
+ */
+export function gerarBat(cliente, tipo = 'configurar') {
+  const jsContent = gerarConfigurarClienteJS(cliente.id)
   const b64        = toBase64Utf8(jsContent)
-  const titulo     = tipo === 'renovar' ? 'RENOVACAO MANUAL DE COOKIE' : 'CONFIGURACAO DE NOVA LOJA'
-  const nomeSafe   = loja.nome_loja ?? loja.id
+  const titulo     = tipo === 'renovar' ? 'RENOVACAO MANUAL DE COOKIE' : 'CONFIGURACAO DE CLIENTE'
+  const nomeSafe   = cliente.nome ?? cliente.id
 
   return `@echo off
 chcp 65001 >nul
 echo.
 echo ============================================
 echo   ${titulo}
-echo   Loja: ${nomeSafe}
+echo   Cliente: ${nomeSafe}
 echo ============================================
 echo.
 
 cd /d C:\\n8n-upseller
 
-:: Grava configurar_loja.js com as configuracoes desta loja
-powershell -NoProfile -Command "[System.IO.File]::WriteAllText('C:\\n8n-upseller\\configurar_loja.js', [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('${b64}')), [System.Text.Encoding]::UTF8)"
+:: Grava configurar_cliente.js com as configuracoes deste cliente
+powershell -NoProfile -Command "[System.IO.File]::WriteAllText('C:\\n8n-upseller\\configurar_cliente.js', [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('${b64}')), [System.Text.Encoding]::UTF8)"
 
 if %errorlevel% neq 0 (
-  echo ERRO: nao foi possivel criar configurar_loja.js
+  echo ERRO: nao foi possivel criar configurar_cliente.js
   pause
   exit /b 1
 )
@@ -181,16 +201,16 @@ call npx playwright install chromium 2>nul
 
 echo.
 echo Iniciando processo...
-node configurar_loja.js
+node configurar_cliente.js
 
 echo.
 pause`
 }
 
-export function downloadBat(loja, tipo = 'configurar') {
-  const conteudo = gerarBat(loja, tipo)
+export function downloadBat(cliente, tipo = 'configurar') {
+  const conteudo = gerarBat(cliente, tipo)
   const prefix   = tipo === 'renovar' ? 'renovar' : 'configurar'
-  const nome     = `${prefix}_${(loja.nome_loja ?? loja.id).toLowerCase().replace(/\s+/g, '_')}.bat`
+  const nome     = `${prefix}_${(cliente.nome ?? cliente.id).toLowerCase().replace(/\s+/g, '_')}.bat`
   const blob     = new Blob([conteudo], { type: 'application/octet-stream' })
   const url      = URL.createObjectURL(blob)
   const a        = document.createElement('a')
@@ -394,6 +414,6 @@ export function useClientes() {
     clientes, loading,
     fetchClientes, criarCliente,
     editarCliente, editarLoja, adicionarLoja,
-    gerarBat, downloadBat, gerarConfigurarLojaJS,
+    gerarBat, downloadBat, gerarConfigurarClienteJS,
   }
 }
