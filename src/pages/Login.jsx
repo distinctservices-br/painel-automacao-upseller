@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function Login() {
-  const { signIn, loading } = useAuth()
+  const { signIn, loading, bloqueadoPor } = useAuth()
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
@@ -11,6 +11,10 @@ export default function Login() {
     e.preventDefault()
     await signIn(email, password)
   }
+
+  const bloqueado = bloqueadoPor > 0
+  const minutos   = String(Math.floor(bloqueadoPor / 60_000)).padStart(2, '0')
+  const segundos  = String(Math.floor((bloqueadoPor % 60_000) / 1000)).padStart(2, '0')
 
   return (
     <div className="min-h-screen bg-black-1 flex items-center justify-center p-6 relative z-[1]">
@@ -90,10 +94,22 @@ export default function Login() {
               </div>
             </div>
 
+            {/* Aviso de bloqueio */}
+            {bloqueado && (
+              <div className="flex items-center gap-2 rounded-[10px] border border-[rgba(255,80,80,0.25)] bg-[rgba(255,80,80,0.08)] px-3 py-2.5">
+                <i className="ti ti-lock text-[15px] text-red-400 shrink-0" />
+                <p className="text-[12px] text-red-300 leading-tight">
+                  Muitas tentativas incorretas. Aguarde{' '}
+                  <span className="font-semibold tabular-nums">{minutos}:{segundos}</span>{' '}
+                  para tentar novamente.
+                </p>
+              </div>
+            )}
+
             {/* Submit */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || bloqueado}
               className="
                 mt-1 w-full flex items-center justify-center gap-2
                 bg-primary text-black-1 font-semibold text-[13px] rounded-full
@@ -105,6 +121,11 @@ export default function Login() {
             >
               {loading ? (
                 <i className="ti ti-loader-2 animate-spin text-[16px]" />
+              ) : bloqueado ? (
+                <>
+                  <i className="ti ti-lock text-[16px]" />
+                  Bloqueado
+                </>
               ) : (
                 <>
                   <i className="ti ti-login text-[16px]" />
