@@ -7,6 +7,7 @@ const LS_URL      = 'supabase_url'
 const LS_ANON     = 'anon_key'
 const LS_SERVICE  = 'service_role_key'
 const LS_EMAIL    = 'alert_email'
+const LS_EXT_TKN  = 'extension_token'
 
 // Detecta service_role key pelo payload JWT
 function isServiceRole(key) {
@@ -79,6 +80,7 @@ export default function Configuracao() {
     anonKey:    '',
     serviceKey: '',
     alertEmail: '',
+    extToken:   '',
   })
 
   // Carrega do localStorage ao montar
@@ -88,6 +90,7 @@ export default function Configuracao() {
       anonKey:    localStorage.getItem(LS_ANON)    ?? '',
       serviceKey: localStorage.getItem(LS_SERVICE) ?? '',
       alertEmail: localStorage.getItem(LS_EMAIL)   ?? '',
+      extToken:   localStorage.getItem(LS_EXT_TKN) ?? '',
     })
   }, [])
 
@@ -116,11 +119,12 @@ export default function Configuracao() {
     localStorage.setItem(LS_ANON,    form.anonKey)
     localStorage.setItem(LS_SERVICE, form.serviceKey)
     localStorage.setItem(LS_EMAIL,   form.alertEmail)
+    localStorage.setItem(LS_EXT_TKN, form.extToken)
     toast.success('Configuração salva')
   }
 
   const clear = () => {
-    setForm({ url: '', anonKey: '', serviceKey: '', alertEmail: '' })
+    setForm({ url: '', anonKey: '', serviceKey: '', alertEmail: '', extToken: '' })
   }
 
   const anonKeyVazia = !form.anonKey?.trim()
@@ -208,6 +212,29 @@ export default function Configuracao() {
               placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9… (role: service_role)"
             />
           </Field>
+
+          {/* ── Extensão Chrome ─────────────────── */}
+          <p className="text-[11px] uppercase tracking-[0.10em] font-medium text-muted border-b border-divider pb-2 mt-2">
+            Extensão Chrome
+          </p>
+
+          <Field
+            label="Extension Token"
+            help="Token secreto compartilhado entre a extensão e a Edge Function. Deve ser igual ao secret EXTENSION_TOKEN configurado no Supabase."
+          >
+            <RevealInput
+              value={form.extToken}
+              onChange={up('extToken')}
+              placeholder="k3zutTyDsnx6RAD51q6cmvQ1hWA4Q8EaR42m8fRJTYs="
+            />
+          </Field>
+
+          {!form.extToken?.trim() && (
+            <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-[rgba(243,193,115,0.06)] border border-[rgba(243,193,115,0.20)] text-warn text-[12px]">
+              <i className="ti ti-alert-triangle text-[15px] flex-shrink-0" />
+              <span>Extension Token vazio — o botão "Gerar extensão" ficará bloqueado na página de Clientes.</span>
+            </div>
+          )}
 
           {/* ── Alertas ─────────────────────────── */}
           <p className="text-[11px] uppercase tracking-[0.10em] font-medium text-muted border-b border-divider pb-2 mt-2">

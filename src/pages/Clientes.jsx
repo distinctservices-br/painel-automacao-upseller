@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import { useClientes } from '@/hooks/useClientes'
+import { useClientes, gerarExtensao } from '@/hooks/useClientes'
 
 // ── Primitivos ──────────────────────────────────────────────────────────────
 
@@ -70,8 +70,8 @@ function LojaFields({ loja, onChange, onRemove, idx, showRemove }) {
         <Field label="Nome da loja">
           <input className={inputCls} placeholder="Nome da loja" value={loja.nomeLoja} onChange={up('nomeLoja')} />
         </Field>
-        <Field label="Shop ID">
-          <input className={inputCls} placeholder="321627" value={loja.shopId} onChange={up('shopId')} />
+        <Field label="Shop ID (opcional)" help="Preenchido automaticamente pela extensão Chrome.">
+          <input className={inputCls} placeholder="Deixe vazio — extensão captura" value={loja.shopId} onChange={up('shopId')} />
         </Field>
       </div>
       <div className="grid grid-cols-2 gap-3">
@@ -136,7 +136,7 @@ function NovoClienteModal({ onClose, onCreate, loading }) {
   const addLoja    = () => setLojas(prev => [...prev, { ...LOJA_VAZIA, ordem: String(prev.length + 1) }])
   const removeLoja = (idx) => setLojas(prev => prev.filter((_, i) => i !== idx))
 
-  const canSubmit = nome && email && lojas.every(l => l.nomeLoja && l.shopId && l.emailUpseller && l.senhaUpseller)
+  const canSubmit = nome && email && lojas.every(l => l.nomeLoja && l.emailUpseller && l.senhaUpseller)
 
   return (
     <ModalWrapper
@@ -370,7 +370,11 @@ function EditarLojaModal({ loja, onClose, onSave, loading }) {
 
 // ── Card de cliente ────────────────────────────────────────────────────────
 
-function ClienteCard({ cliente, onGenerateBat, onEditCliente, onEditLoja }) {
+function ClienteCard({ cliente, onGenerateBat, onGerarExtensao, onEditCliente, onEditLoja }) {
+  const todasComShopId  = cliente.lojas.length > 0 && cliente.lojas.every(l => l.shop_id?.trim())
+  const algumaSemShopId = cliente.lojas.some(l => !l.shop_id?.trim())
+  const extTokenOk      = !!localStorage.getItem('extension_token')?.trim()
+
   return (
     <div className="bg-black-2 border border-divider rounded-lg overflow-hidden">
       {/* Header */}
@@ -381,7 +385,20 @@ function ClienteCard({ cliente, onGenerateBat, onEditCliente, onEditLoja }) {
             <p className="text-[11px] text-muted mt-0.5 truncate">{cliente.email_contato}</p>
           )}
         </div>
-        <div className="flex items-center gap-1 ml-3 flex-shrink-0">
+        <div className="flex items-center gap-1.5 ml-3 flex-shrink-0">
+          {/* Badge de status do sistema */}
+          {todasComShopId ? (
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[rgba(115,243,164,0.10)] border border-[rgba(115,243,164,0.25)] text-primary">
+              <span className="w-1.5 h-1.5 rounded-full bg-current" /> Sistema ativo
+            </span>
+          ) : algumaSemShopId ? (
+            <span
+              className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[rgba(243,193,115,0.10)] border border-[rgba(243,193,115,0.25)] text-warn cursor-default"
+              title="Instale a extensão no Chrome do cliente para ativar o sistema"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-current" /> Aguardando extensão
+            </span>
+          ) : null}
           <span className="text-[11px] text-muted font-medium px-2 py-0.5 rounded-full bg-muted-surface border border-divider">
             {cliente.lojas.length} {cliente.lojas.length === 1 ? 'loja' : 'lojas'}
           </span>
@@ -402,7 +419,10 @@ function ClienteCard({ cliente, onGenerateBat, onEditCliente, onEditLoja }) {
             <div className="min-w-0 flex-1">
               <p className="text-[13px] text-white-1 truncate">{loja.nome_loja}</p>
               <p className="text-[11px] text-muted font-mono mt-0.5">
-                {loja.shop_id}
+                {loja.shop_id
+                  ? <span>{loja.shop_id}</span>
+                  : <span className="text-warn italic">sem shop_id</span>
+                }
                 {loja.printer_id && <span className="ml-2 text-muted-light">{loja.printer_id}</span>}
               </p>
             </div>
@@ -420,13 +440,41 @@ function ClienteCard({ cliente, onGenerateBat, onEditCliente, onEditLoja }) {
         ))}
       </div>
 
+      {/* Aviso quando há loja sem shop_id */}
+      {algumaSemShopId && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-[rgba(243,193,115,0.05)] border-t border-[rgba(243,193,115,0.15)] text-warn text-[11px]">
+          <i className="ti ti-info-circle text-[13px] flex-shrink-0" />
+          <span>Instale a extensão no Chrome do cliente para ativar o sistema automaticamente.</span>
+        </div>
+      )}
+
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-divider">
+      <div className="flex items-center gap-3 px-4 py-3 border-t border-divider">
+        {/* .bat — só útil quando shop_id está preenchido */}
         <button
-          onClick={() => onGenerateBat(cliente)}
-          className="flex items-center gap-1.5 text-[12px] font-medium text-primary hover:text-white-1 transition-colors"
+          onClick={() => algumaSemShopId
+            ? toast('Aguardando shop_id — gere a extensão primeiro.', { icon: '⏳' })
+            : onGenerateBat(cliente)
+          }
+          className={`flex items-center gap-1.5 text-[12px] font-medium transition-colors ${
+            algumaSemShopId ? 'text-muted cursor-not-allowed' : 'text-primary hover:text-white-1'
+          }`}
+          title={algumaSemShopId ? 'Aguardando captura do shop_id pela extensão' : 'Gerar script de configuração'}
         >
           <i className="ti ti-file-code text-[13px]" /> Gerar .bat
+        </button>
+
+        <span className="text-divider">|</span>
+
+        {/* Gerar extensão */}
+        <button
+          onClick={() => extTokenOk ? onGerarExtensao(cliente) : toast.error('Configure o Extension Token em Configuração.')}
+          className={`flex items-center gap-1.5 text-[12px] font-medium transition-colors ${
+            extTokenOk ? 'text-primary hover:text-white-1' : 'text-muted cursor-not-allowed'
+          }`}
+          title={extTokenOk ? `Gerar Distinct-Services-${cliente.nome?.replace(/\s+/g,'')}.zip` : 'Extension Token não configurado'}
+        >
+          <i className="ti ti-puzzle text-[13px]" /> Gerar extensão
         </button>
       </div>
     </div>
@@ -511,6 +559,7 @@ export default function Clientes() {
             <ClienteCard
               key={c.id} cliente={c}
               onGenerateBat={() => abrirBat(c)}
+              onGerarExtensao={gerarExtensao}
               onEditCliente={setEditCli}
               onEditLoja={setEditLojaData}
             />

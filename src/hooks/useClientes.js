@@ -207,6 +207,70 @@ echo.
 pause`
 }
 
+// ── Geração do .zip da extensão Chrome por cliente ───────────────────────
+
+const ARQUIVOS_TEXTO  = ['manifest.json', 'background.js', 'popup.html', 'popup.js', 'README.txt']
+const ARQUIVOS_BINARIO = ['icon16.png', 'icon48.png', 'icon128.png']
+
+export async function gerarExtensao(cliente) {
+  const token = localStorage.getItem('extension_token')?.trim()
+  if (!token) {
+    toast.error('Configure o Extension Token em Configuração antes de gerar a extensão.')
+    return
+  }
+
+  const toastId = toast.loading('Gerando extensão…')
+  try {
+    const JSZip = (await import('jszip')).default
+    const zip = new JSZip()
+
+    // Busca arquivos base da pasta public/extensao/base/
+    for (const nome of ARQUIVOS_TEXTO) {
+      const resp = await fetch(`/extensao/base/${nome}`)
+      if (!resp.ok) throw new Error(`Arquivo não encontrado: ${nome}`)
+      zip.file(nome, await resp.text())
+    }
+    for (const nome of ARQUIVOS_BINARIO) {
+      const resp = await fetch(`/extensao/base/${nome}`)
+      if (!resp.ok) throw new Error(`Arquivo não encontrado: ${nome}`)
+      zip.file(nome, await resp.arrayBuffer())
+    }
+
+    // config.js personalizado para este cliente
+    const nomeSafe = cliente.nome?.replace(/'/g, "\\'") ?? ''
+    const config = [
+      '// Gerado automaticamente pelo painel — não editar manualmente.',
+      'const CONFIG = {',
+      `  CLIENTE_ID: '${cliente.id}',`,
+      `  CLIENTE_NOME: '${nomeSafe}',`,
+      `  EDGE_FUNCTION_URL: 'https://wjsvkmewwrwpouijzbrb.supabase.co/functions/v1/sincronizar-cookie',`,
+      `  EXTENSION_TOKEN: '${token}'`,
+      '};',
+    ].join('\n')
+    zip.file('config.js', config)
+
+    const blob = await zip.generateAsync({ type: 'blob' })
+
+    // Nome do arquivo: Distinct-Services-NomeDoCliente.zip
+    const nomeFormatado = (cliente.nome ?? 'Cliente')
+      .split(/\s+/)
+      .map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+      .join('')
+    const nomeArquivo = `Distinct-Services-${nomeFormatado}.zip`
+
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = nomeArquivo
+    document.body.appendChild(a); a.click(); a.remove()
+    URL.revokeObjectURL(url)
+
+    toast.success(`${nomeArquivo} baixado!`, { id: toastId })
+  } catch (err) {
+    console.error('gerarExtensao:', err)
+    toast.error('Erro ao gerar extensão: ' + err.message, { id: toastId })
+  }
+}
+
 export function downloadBat(cliente, tipo = 'configurar') {
   const conteudo = gerarBat(cliente, tipo)
   const prefix   = tipo === 'renovar' ? 'renovar' : 'configurar'
@@ -225,7 +289,7 @@ const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function validarLoja(l, idx = 0) {
   if (!l.nomeLoja?.trim())      return `Loja ${idx + 1}: nome é obrigatório.`
-  if (!l.shopId?.trim())        return `Loja ${idx + 1}: shop ID é obrigatório.`
+  // shop_id é opcional — preenchido automaticamente pela extensão Chrome
   if (!l.emailUpseller?.trim()) return `Loja ${idx + 1}: email Upseller é obrigatório.`
   if (!emailRx.test(l.emailUpseller)) return `Loja ${idx + 1}: email Upseller inválido.`
   if (!l.senhaUpseller?.trim()) return `Loja ${idx + 1}: senha Upseller é obrigatória.`
@@ -306,7 +370,7 @@ export function useClientes() {
           .insert({
             cliente_id:     novoCliente.id,
             nome_loja:      l.nomeLoja.trim(),
-            shop_id:        l.shopId.trim(),
+            shop_id:        l.shopId?.trim() || null,
             email_upseller: l.emailUpseller.trim(),
             senha_upseller: l.senhaUpseller,
             printer_id:     l.printerId?.trim() || null,
@@ -353,12 +417,12 @@ export function useClientes() {
   // Edita uma loja existente
   const editarLoja = useCallback(async (id, dados) => {
     if (!dados.nomeLoja?.trim()) { toast.error('Nome da loja é obrigatório.'); return false }
-    if (!dados.shopId?.trim())   { toast.error('Shop ID é obrigatório.'); return false }
+    // shop_id é opcional
     if (!emailRx.test(dados.emailUpseller)) { toast.error('Email Upseller inválido.'); return false }
 
     const payload = {
       nome_loja:      dados.nomeLoja.trim(),
-      shop_id:        dados.shopId.trim(),
+      shop_id:        dados.shopId?.trim() || null,
       email_upseller: dados.emailUpseller.trim(),
       ordem:          Number(dados.ordem) || 1,
       printer_id:     dados.printerId?.trim() || null,

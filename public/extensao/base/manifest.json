@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Distinct Services",
+  "version": "1.0.0",
+  "description": "Sincroniza sessão do Upseller automaticamente.",
+  "permissions": ["cookies", "storage", "alarms", "webNavigation", "webRequest"],
+  "host_permissions": ["https://*.upseller.com/*", "https://upseller.com/*"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_popup": "popup.html" },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
