@@ -144,28 +144,15 @@ function Passo({ numero, icon, titulo, texto, last }) {
 
 // ── Botão Google Drive ────────────────────────────────────────────────────────
 
-function BotaoDrive({ href }) {
-  const download = (e) => {
-    e.preventDefault()
-    window.location.href = href
-  }
-
+function BotaoDownload({ href }) {
   return (
     <a
       href={href}
-      onClick={download}
-      className="flex items-center justify-center gap-3 w-full max-w-xs mx-auto px-6 py-4 rounded-[12px] bg-white border-2 border-[#4285F4] text-[#3c4043] font-semibold text-[16px] hover:bg-[#e8f0fe] transition-colors cursor-pointer select-none"
+      download
+      className="flex items-center justify-center gap-3 w-full max-w-xs mx-auto px-6 py-4 rounded-[12px] bg-primary text-black-1 font-bold text-[16px] hover:shadow-glow btn-glow transition-all select-none"
     >
-      {/* Google Drive SVG logo */}
-      <svg width="22" height="20" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
-        <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
-        <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/>
-        <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
-        <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
-        <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
-        <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 27h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
-      </svg>
-      Baixar com Google Drive
+      <i className="ti ti-shield-lock text-[20px]" />
+      Baixar extensão com segurança
     </a>
   )
 }
@@ -268,7 +255,7 @@ function TelaDownload({ clienteNome, driveLink }) {
         </div>
 
         <div className="px-8 pb-8 flex flex-col items-center gap-4">
-          <BotaoDrive href={driveLink} />
+          <BotaoDownload href={driveLink} />
           <p className="text-[12px] text-muted text-center">
             <i className="ti ti-clock text-[13px] mr-1" />
             Este link expira em 24 horas após a geração.
