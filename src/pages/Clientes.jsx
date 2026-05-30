@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import { useClientes, gerarExtensao } from '@/hooks/useClientes'
+import { useClientes, gerarZipBase64 } from '@/hooks/useClientes'
+import { supabase } from '@/lib/supabase'
 
 // ── Primitivos ──────────────────────────────────────────────────────────────
 
@@ -368,6 +369,58 @@ function EditarLojaModal({ loja, onClose, onSave, loading }) {
   )
 }
 
+// ── Modal Onboarding gerado ────────────────────────────────────────────────
+
+function CopyField({ label, value }) {
+  const copy = () => { navigator.clipboard?.writeText(value); toast.success(`${label} copiado!`) }
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-[11px] uppercase tracking-[0.07em] font-medium text-muted">{label}</label>
+      <div className="flex items-center gap-2">
+        <div className="flex-1 bg-surface border border-[rgba(250,250,250,0.08)] rounded-[10px] px-3 py-2 font-mono text-[13px] text-white-1 truncate">
+          {value}
+        </div>
+        <button
+          onClick={copy}
+          className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-[8px] bg-muted-surface border border-divider text-muted hover:text-white-1 hover:border-[rgba(250,250,250,0.3)] transition-all"
+          title="Copiar"
+        >
+          <i className="ti ti-copy text-[14px]" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function OnboardingModal({ data, onClose }) {
+  return (
+    <ModalWrapper
+      title="Extensão gerada com sucesso!"
+      sub="Envie a URL e a senha separadamente ao cliente."
+      onClose={onClose}
+      footer={
+        <button
+          onClick={onClose}
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-black-1 text-[13px] font-semibold hover:shadow-glow btn-glow transition-all"
+        >
+          <i className="ti ti-check text-[14px]" /> Fechar
+        </button>
+      }
+    >
+      <CopyField label="URL de instalação" value={data.onboarding_url} />
+      <CopyField label="Senha de acesso" value={data.senha} />
+
+      <div className="flex items-start gap-2.5 px-3 py-3 rounded-lg bg-[rgba(243,193,115,0.06)] border border-[rgba(243,193,115,0.20)] text-warn text-[12px]">
+        <i className="ti ti-alert-triangle text-[15px] flex-shrink-0 mt-0.5" />
+        <p className="leading-relaxed">
+          Envie a URL e a senha <strong>separadamente</strong> ao cliente.
+          O link expira em 24 horas após a geração.
+        </p>
+      </div>
+    </ModalWrapper>
+  )
+}
+
 // ── Card de cliente ────────────────────────────────────────────────────────
 
 function ClienteCard({ cliente, onGenerateBat, onGerarExtensao, onEditCliente, onEditLoja }) {
@@ -486,10 +539,11 @@ function ClienteCard({ cliente, onGenerateBat, onGerarExtensao, onEditCliente, o
 export default function Clientes() {
   const { clientes, loading, fetchClientes, criarCliente, editarCliente, editarLoja, gerarBat } = useClientes()
 
-  const [newOpen,      setNewOpen]      = useState(false)
-  const [batData,      setBatData]      = useState(null)
-  const [editCli,      setEditCli]      = useState(null)
-  const [editLojaData, setEditLojaData] = useState(null)
+  const [newOpen,       setNewOpen]       = useState(false)
+  const [batData,       setBatData]       = useState(null)
+  const [editCli,       setEditCli]       = useState(null)
+  const [editLojaData,  setEditLojaData]  = useState(null)
+  const [onboardingData, setOnboardingData] = useState(null)
 
   useEffect(() => { fetchClientes() }, [fetchClientes])
 
@@ -510,6 +564,26 @@ export default function Clientes() {
   const abrirBat = (cliente) => {
     if (!cliente.lojas.length) { toast.error('Cliente sem lojas.'); return }
     setBatData(cliente)
+  }
+
+  const handleGerarExtensao = async (cliente) => {
+    const toastId = toast.loading('Gerando e enviando extensão…')
+    try {
+      const zipBase64 = await gerarZipBase64(cliente)
+      const { data, error } = await supabase.functions.invoke('gerar-onboarding', {
+        body: {
+          cliente_id:   cliente.id,
+          cliente_nome: cliente.nome,
+          zip_base64:   zipBase64,
+        },
+      })
+      if (error) throw error
+      if (!data?.sucesso) throw new Error(data?.erro || 'Erro desconhecido')
+      toast.success('Extensão gerada!', { id: toastId })
+      setOnboardingData(data)
+    } catch (err) {
+      toast.error('Erro: ' + err.message, { id: toastId })
+    }
   }
 
   return (
@@ -559,7 +633,7 @@ export default function Clientes() {
             <ClienteCard
               key={c.id} cliente={c}
               onGenerateBat={() => abrirBat(c)}
-              onGerarExtensao={gerarExtensao}
+              onGerarExtensao={() => handleGerarExtensao(c)}
               onEditCliente={setEditCli}
               onEditLoja={setEditLojaData}
             />
@@ -577,7 +651,8 @@ export default function Clientes() {
       {newOpen       && <NovoClienteModal   onClose={() => setNewOpen(false)}    onCreate={handleCriar}    loading={loading} />}
       {batData       && <BatModal           cliente={batData}                    onClose={() => setBatData(null)} />}
       {editCli       && <EditarClienteModal cliente={editCli}                    onClose={() => setEditCli(null)}      onSave={handleEditCli}  loading={loading} />}
-      {editLojaData  && <EditarLojaModal    loja={editLojaData}                  onClose={() => setEditLojaData(null)} onSave={handleEditLoja} loading={loading} />}
+      {editLojaData   && <EditarLojaModal    loja={editLojaData}                  onClose={() => setEditLojaData(null)}  onSave={handleEditLoja} loading={loading} />}
+      {onboardingData && <OnboardingModal   data={onboardingData}                onClose={() => setOnboardingData(null)} />}
     </>
   )
 }

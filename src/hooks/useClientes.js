@@ -209,9 +209,44 @@ pause`
 
 // ── Geração do .zip da extensão Chrome por cliente ───────────────────────
 
-const ARQUIVOS_TEXTO  = ['manifest.json', 'background.js', 'popup.html', 'popup.js', 'README.txt']
+const ARQUIVOS_TEXTO   = ['manifest.json', 'background.js', 'popup.html', 'popup.js', 'README.txt']
 const ARQUIVOS_BINARIO = ['icon16.png', 'icon48.png', 'icon128.png']
 
+/** Monta o zip e retorna como base64 (para enviar à Edge Function) */
+export async function gerarZipBase64(cliente) {
+  const token = localStorage.getItem('extension_token')?.trim()
+  if (!token) throw new Error('Extension Token não configurado em Configuração.')
+
+  const JSZip = (await import('jszip')).default
+  const zip = new JSZip()
+
+  for (const nome of ARQUIVOS_TEXTO) {
+    const resp = await fetch(`/extensao/base/${nome}`)
+    if (!resp.ok) throw new Error(`Arquivo não encontrado: ${nome}`)
+    zip.file(nome, await resp.text())
+  }
+  for (const nome of ARQUIVOS_BINARIO) {
+    const resp = await fetch(`/extensao/base/${nome}`)
+    if (!resp.ok) throw new Error(`Arquivo não encontrado: ${nome}`)
+    zip.file(nome, await resp.arrayBuffer())
+  }
+
+  const nomeSafe = cliente.nome?.replace(/'/g, "\\'") ?? ''
+  const config = [
+    '// Gerado automaticamente pelo painel — não editar manualmente.',
+    'const CONFIG = {',
+    `  CLIENTE_ID: '${cliente.id}',`,
+    `  CLIENTE_NOME: '${nomeSafe}',`,
+    `  EDGE_FUNCTION_URL: 'https://wjsvkmewwrwpouijzbrb.supabase.co/functions/v1/sincronizar-cookie',`,
+    `  EXTENSION_TOKEN: '${token}'`,
+    '};',
+  ].join('\n')
+  zip.file('config.js', config)
+
+  return zip.generateAsync({ type: 'base64' })
+}
+
+/** Download direto do zip (uso local/debug) */
 export async function gerarExtensao(cliente) {
   const token = localStorage.getItem('extension_token')?.trim()
   if (!token) {
