@@ -152,7 +152,7 @@ function BotaoDownload({ href }) {
       className="flex items-center justify-center gap-3 w-full max-w-xs mx-auto px-6 py-4 rounded-[12px] bg-primary text-black-1 font-bold text-[16px] hover:shadow-glow btn-glow transition-all select-none"
     >
       <i className="ti ti-shield-lock text-[20px]" />
-      Baixar extensão com segurança
+      Baixar extensão
     </a>
   )
 }
